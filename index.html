@@ -75,23 +75,28 @@
     </div>
 
     <script>
-       const socket = new WebSocket('ws://147.161.128.103:8080');
+        // Conectar ao servidor usando Socket.io
+        const socket = io('https://tarot-t8dx.onrender.com', {
+            transports: ['websocket'],
+        });
 
-        socket.onmessage = (event) => {
-            const message = event.data;
-            displayMessage(message, 'received');
-        };
+        // Receber mensagens do servidor
+        socket.on('receiveMessage', (data) => {
+            displayMessage(data.message, 'received');
+        });
 
+        // Enviar mensagem ao clicar no botão
         function sendMessage() {
             const input = document.getElementById('message-input');
             const message = input.value.trim();
             if (message) {
-                socket.send(message); // Envia mensagem ao backend
+                socket.emit('sendMessage', { message }); // Envia mensagem ao backend
                 displayMessage(message, 'sent');
                 input.value = '';
             }
         }
 
+        // Exibir mensagem na interface
         function displayMessage(message, type) {
             const messagesContainer = document.getElementById('messages');
             const messageElement = document.createElement('p');
@@ -101,5 +106,8 @@
             messagesContainer.scrollTop = messagesContainer.scrollHeight; // Rolagem automática
         }
     </script>
+
+    <!-- Adiciona o cliente do Socket.io -->
+    <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
 </body>
 </html>

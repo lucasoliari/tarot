@@ -6,24 +6,21 @@ const app = express();
 const server = http.createServer(app);
 const io = new Server(server);
 
-app.get('/', (req, res) => {
-    res.send('Servidor de chat está ativo.');
-});
+const PORT = process.env.PORT || 3000;
 
-// Lida com conexões de WebSocket
 io.on('connection', (socket) => {
-    console.log('Novo usuário conectado.');
+    console.log('Usuário conectado:', socket.id);
 
-    socket.on('message', (msg) => {
-        console.log('Mensagem recebida:', msg);
-        socket.broadcast.emit('message', msg); // Envia a mensagem para outros usuários
+    socket.on('sendMessage', (data) => {
+        console.log('Mensagem recebida:', data.message);
+        io.emit('receiveMessage', { message: data.message });
     });
 
     socket.on('disconnect', () => {
-        console.log('Usuário desconectado.');
+        console.log('Usuário desconectado:', socket.id);
     });
 });
 
-server.listen(8080, () => {
-    console.log('Servidor rodando na porta 8080.');
+server.listen(PORT, () => {
+    console.log(`Servidor rodando na porta ${PORT}`);
 });

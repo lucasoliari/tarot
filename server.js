@@ -1,10 +1,3 @@
-
-// Rota padrão para verificar o status do servidor
-app.get('/', (req, res) => {
-    res.send('Servidor de Chat de Tarot está ativo!');
-});
-
-
 const express = require('express');
 const http = require('http');
 const { Server } = require('socket.io');

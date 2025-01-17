@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Oráculo Místico</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <header>
+        <h1>🔮 Oráculo Místico 🔮</h1>
+        <nav>
+            <ul>
+                <li><a href="#chat">Consulta de Tarot</a></li>
+                <li><a href="#horoscope">Horóscopo Diário</a></li>
+                <li><a href="#contact">Fale Conosco</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <main>
+        <!-- Seção: Consulta de Tarot -->
+        <section id="chat">
+            <h2>Consulta de Tarot</h2>
+            <p>Escolha o tempo da consulta e inicie uma sessão com nossos especialistas.</p>
+            <select id="duration">
+                <option value="5">5 minutos</option>
+                <option value="10">10 minutos</option>
+                <option value="15">15 minutos</option>
+            </select>
+            <input type="text" id="username" placeholder="Digite seu nome..." />
+            <button onclick="startChat()">Iniciar Chat</button>
+        </section>
+
+        <!-- Seção: Horóscopo Diário -->
+        <section id="horoscope">
+            <h2>Horóscopo Diário</h2>
+            <p>Descubra o que os astros reservam para você hoje. Escolha o seu signo:</p>
+            <select id="zodiac">
+                <option value="aries">♈ Áries</option>
+                <option value="taurus">♉ Touro</option>
+                <option value="gemini">♊ Gêmeos</option>
+                <option value="cancer">♋ Câncer</option>
+                <option value="leo">♌ Leão</option>
+                <option value="virgo">♍ Virgem</option>
+                <option value="libra">♎ Libra</option>
+                <option value="scorpio">♏ Escorpião</option>
+                <option value="sagittarius">♐ Sagitário</option>
+                <option value="capricorn">♑ Capricórnio</option>
+                <option value="aquarius">♒ Aquário</option>
+                <option value="pisces">♓ Peixes</option>
+            </select>
+            <button onclick="getHoroscope()">Ver Horóscopo</button>
+            <p id="horoscope-result"></p>
+        </section>
+
+        <!-- Seção: Fale Conosco -->
+        <section id="contact">
+            <h2>Fale Conosco</h2>
+            <p>Envie suas dúvidas ou sugestões. Estamos prontos para ajudar!</p>
+            <form id="contact-form">
+                <input type="text" placeholder="Seu Nome" required />
+                <input type="email" placeholder="Seu E-mail" required />
+                <textarea placeholder="Escreva sua mensagem aqui..." required></textarea>
+                <button type="submit">Enviar</button>
+            </form>
+        </section>
+    </main>
+
+    <footer>
+        <p>© 2025 Oráculo Místico. Todos os direitos reservados.</p>
+    </footer>
+</body>
+</html>

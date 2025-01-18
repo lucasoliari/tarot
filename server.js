@@ -2,6 +2,8 @@ const express = require('express');
 const http = require('http');
 const { Server } = require('socket.io');
 const cors = require('cors');
+const bcrypt = require('bcrypt');
+const { Pool } = require('pg');
 
 // Configurações do Servidor
 const app = express();
@@ -18,8 +20,72 @@ app.use(express.json());
 
 const PORT = process.env.PORT || 10000;
 
+// Configuração do pool de conexão com o PostgreSQL
+const pool = new Pool({
+    connectionString: process.env.DATABASE_URL, // Substitua pelo valor da URL do banco fornecida pelo Render
+    ssl: {
+        rejectUnauthorized: false,
+    },
+});
+
 // Gerenciar sessões e temporizadores
 const sessions = {};
+
+// Criar a tabela de usuários caso não exista
+async function createUserTable() {
+    const createTableQuery = `
+        CREATE TABLE IF NOT EXISTS users (
+            id SERIAL PRIMARY KEY,
+            email VARCHAR(100) UNIQUE NOT NULL,
+            password_hash VARCHAR(255) NOT NULL,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        );
+    `;
+    try {
+        await pool.query(createTableQuery);
+        console.log('Tabela "users" criada ou já existe.');
+    } catch (error) {
+        console.error('Erro ao criar a tabela "users":', error);
+    }
+}
+
+// Chamar a função de criação de tabela ao iniciar o servidor
+createUserTable();
+
+// Rota de registro de usuários
+app.post('/register', async (req, res) => {
+    const { email, password } = req.body;
+    try {
+        const hashedPassword = await bcrypt.hash(password, 10);
+        await pool.query('INSERT INTO users (email, password_hash) VALUES ($1, $2)', [email, hashedPassword]);
+        res.status(201).send('Usuário registrado com sucesso!');
+    } catch (error) {
+        console.error('Erro ao registrar usuário:', error);
+        res.status(500).send('Erro ao registrar o usuário.');
+    }
+});
+
+// Rota de login de usuários
+app.post('/login', async (req, res) => {
+    const { email, password } = req.body;
+    try {
+        const result = await pool.query('SELECT * FROM users WHERE email = $1', [email]);
+        if (result.rows.length > 0) {
+            const user = result.rows[0];
+            const match = await bcrypt.compare(password, user.password_hash);
+            if (match) {
+                res.status(200).send('Login bem-sucedido!');
+            } else {
+                res.status(401).send('Senha incorreta.');
+            }
+        } else {
+            res.status(404).send('Usuário não encontrado.');
+        }
+    } catch (error) {
+        console.error('Erro ao fazer login:', error);
+        res.status(500).send('Erro ao fazer login.');
+    }
+});
 
 // Conexão WebSocket
 io.on('connection', (socket) => {

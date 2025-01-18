@@ -16,7 +16,7 @@ const io = new Server(server, {
 app.use(cors());
 app.use(express.json());
 
-const PORT = process.env.PORT || 10000
+const PORT = process.env.PORT || 10000;
 
 // Gerenciar sessões e temporizadores
 const sessions = {};
@@ -50,6 +50,7 @@ io.on('connection', (socket) => {
     socket.on('sendMessage', (message) => {
         const session = sessions[socket.id];
         if (session) {
+            // Emitir mensagem para todos os clientes conectados
             io.emit('newMessage', { username: session.username, message });
         }
     });

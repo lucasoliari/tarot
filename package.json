@@ -1,17 +1,20 @@
 {
-    "name": "tarot-chat-server",
-    "version": "1.0.0",
-    "description": "Servidor de chat para consultas de tarot com temporizador",
-    "main": "server.js",
-    "scripts": {
-      "start": "node server.js"
-    },
-    "keywords": ["tarot", "chat", "socket.io", "temporizador"],
-    "author": "Seu Nome",
-    "license": "MIT",
-    "dependencies": {
-      "express": "^4.18.2",
-      "socket.io": "^4.5.1"
-    }
+  "name": "backend-tarot",
+  "version": "1.0.0",
+  "description": "Backend para o sistema de login e autenticação",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "body-parser": "^1.20.2",
+    "cors": "^2.8.5",
+    "express": "^4.18.2",
+    "jsonwebtoken": "^9.0.2",
+    "pg": "^8.11.3"
+  },
+  "engines": {
+    "node": "16.x" // Versão do Node.js compatível com o Render
   }
-  
+}

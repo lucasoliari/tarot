@@ -2,32 +2,44 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
-const sqlite3 = require('sqlite3').verbose();
+const { Pool } = require('pg'); // PostgreSQL
 const cors = require('cors');
 
 const app = express();
-const PORT = 3000;
-const SECRET_KEY = 'sua_chave_secreta_aqui';
+const PORT = process.env.PORT || 3000; // Usa a porta fornecida pelo Render ou 3000 localmente
+const SECRET_KEY = process.env.SECRET_KEY || '5233';
+
+pool.query(`
+    CREATE TABLE IF NOT EXISTS users (
+      id SERIAL PRIMARY KEY,
+      username VARCHAR(255) NOT NULL,
+      email VARCHAR(255) NOT NULL UNIQUE,
+      password VARCHAR(255) NOT NULL,
+      role VARCHAR(50) DEFAULT 'user'
+    )
+  `, (err, res) => {
+    if (err) {
+      console.error('Erro ao criar tabela:', err);
+    } else {
+      console.log('Tabela "users" criada com sucesso!');
+    }
+  });
+  
+// Configuração do CORS
+app.use(cors({
+  origin: process.env.FRONTEND_URL || 'https://snazzy-douhua-3ce4d9.netlify.app/cadastro.html', // Substitua pelo domínio do frontend
+}));
 
 // Middleware
-app.use(cors());
 app.use(bodyParser.json());
-app.use(express.static('public'));
 
-// Banco de Dados SQLite
-const db = new sqlite3.Database('./database.db');
-
-// Cria tabela de usuários
-db.serialize(() => {
-  db.run(`
-    CREATE TABLE IF NOT EXISTS users (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      username TEXT NOT NULL,
-      email TEXT NOT NULL UNIQUE,
-      password TEXT NOT NULL,
-      role TEXT DEFAULT 'user'
-    )
-  `);
+// Configuração do PostgreSQL
+const pool = new Pool({
+  user: process.env.DB_USER,
+  host: process.env.DB_HOST,
+  database: process.env.DB_NAME,
+  password: process.env.DB_PASSWORD,
+  port: process.env.DB_PORT || 5432,
 });
 
 // Rota de Cadastro
@@ -35,24 +47,27 @@ app.post('/api/signup', async (req, res) => {
   const { username, email, password } = req.body;
   const hashedPassword = await bcrypt.hash(password, 10);
 
-  db.run(
-    'INSERT INTO users (username, email, password) VALUES (?, ?, ?)',
-    [username, email, hashedPassword],
-    function (err) {
-      if (err) {
-        return res.status(400).json({ error: 'Erro ao cadastrar usuário.' });
-      }
-      res.json({ message: 'Usuário cadastrado com sucesso!' });
-    }
-  );
+  try {
+    await pool.query(
+      'INSERT INTO users (username, email, password) VALUES ($1, $2, $3)',
+      [username, email, hashedPassword]
+    );
+    res.json({ message: 'Usuário cadastrado com sucesso!' });
+  } catch (err) {
+    console.error(err);
+    res.status(400).json({ error: 'Erro ao cadastrar usuário.' });
+  }
 });
 
 // Rota de Login
 app.post('/api/login', async (req, res) => {
   const { email, password } = req.body;
 
-  db.get('SELECT * FROM users WHERE email = ?', [email], async (err, user) => {
-    if (err || !user) {
+  try {
+    const result = await pool.query('SELECT * FROM users WHERE email = $1', [email]);
+    const user = result.rows[0];
+
+    if (!user) {
       return res.status(400).json({ error: 'Email ou senha inválidos.' });
     }
 
@@ -63,7 +78,10 @@ app.post('/api/login', async (req, res) => {
 
     const token = jwt.sign({ id: user.id, role: user.role }, SECRET_KEY, { expiresIn: '1h' });
     res.json({ message: 'Login bem-sucedido!', token });
-  });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Erro interno do servidor.' });
+  }
 });
 
 // Rota Protegida (Admin)

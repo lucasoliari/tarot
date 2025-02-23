@@ -7,24 +7,8 @@ const cors = require('cors');
 
 const app = express();
 const PORT = process.env.PORT || 3000; // Usa a porta fornecida pelo Render ou 3000 localmente
-const SECRET_KEY = process.env.SECRET_KEY || '5233';
+const SECRET_KEY = process.env.SECRET_KEY || 'sua_chave_secreta_aqui';
 
-pool.query(`
-    CREATE TABLE IF NOT EXISTS users (
-      id SERIAL PRIMARY KEY,
-      username VARCHAR(255) NOT NULL,
-      email VARCHAR(255) NOT NULL UNIQUE,
-      password VARCHAR(255) NOT NULL,
-      role VARCHAR(50) DEFAULT 'user'
-    )
-  `, (err, res) => {
-    if (err) {
-      console.error('Erro ao criar tabela:', err);
-    } else {
-      console.log('Tabela "users" criada com sucesso!');
-    }
-  });
-  
 // Configuração do CORS
 app.use(cors({
   origin: process.env.FRONTEND_URL || 'https://snazzy-douhua-3ce4d9.netlify.app/cadastro.html', // Substitua pelo domínio do frontend
@@ -40,6 +24,23 @@ const pool = new Pool({
   database: process.env.DB_NAME,
   password: process.env.DB_PASSWORD,
   port: process.env.DB_PORT || 5432,
+});
+
+// Garantir que a tabela "users" exista ao iniciar o servidor
+pool.query(`
+  CREATE TABLE IF NOT EXISTS users (
+    id SERIAL PRIMARY KEY,
+    username VARCHAR(255) NOT NULL,
+    email VARCHAR(255) NOT NULL UNIQUE,
+    password VARCHAR(255) NOT NULL,
+    role VARCHAR(50) DEFAULT 'user'
+  )
+`, (err, res) => {
+  if (err) {
+    console.error('Erro ao criar tabela:', err);
+  } else {
+    console.log('Tabela "users" criada com sucesso!');
+  }
 });
 
 // Rota de Cadastro

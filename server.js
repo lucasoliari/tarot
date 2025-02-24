@@ -19,11 +19,11 @@ app.use(bodyParser.json());
 
 // Configuração do PostgreSQL
 const pool = new Pool({
-  user: process.env.DB_USER,
-  host: process.env.DB_HOST,
-  database: process.env.DB_NAME,
-  password: process.env.DB_PASSWORD,
-  port: process.env.DB_PORT || 5432,
+  user: 'login_p7n8_user',
+  host: 'postgresql://login_p7n8_user:uhF5GKbxzXYyS0jtx9PDj4lIcRpnKk00@dpg-cutqkfd2ng1s73dd5ui0-a/login_p7n8',
+  database: 'login_p7n8',
+  password: 'uhF5GKbxzXYyS0jtx9PDj4lIcRpnKk00',
+  port: '5432'
 });
 
 // Garantir que a tabela "users" exista ao iniciar o servidor

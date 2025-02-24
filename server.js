@@ -18,12 +18,17 @@ app.use(cors({
 app.use(bodyParser.json());
 
 // Configuração do PostgreSQL
+const { Pool } = require('pg');
+
 const pool = new Pool({
-  user: 'login_p7n8_user',
-  host: 'postgresql://login_p7n8_user:uhF5GKbxzXYyS0jtx9PDj4lIcRpnKk00@dpg-cutqkfd2ng1s73dd5ui0-a/login_p7n8',
-  database: 'login_p7n8',
-  password: 'uhF5GKbxzXYyS0jtx9PDj4lIcRpnKk00',
-  port: '5432'
+  user: 'login_p7n8_user', // Usuário do banco de dados
+  host: 'dpg-cutqkfd2ng1s73dd5ui0-a', // Host fornecido pelo Render
+  database: 'login_p7n8', // Nome do banco de dados
+  password: 'uhF5GKbxzXYyS0jtx9PDj4lIcRpnKk00', // Senha do banco de dados
+  port: 5432, // Porta (como número, não string)
+  ssl: {
+    rejectUnauthorized: false, // Necessário para conexões SSL no Render
+  },
 });
 
 // Garantir que a tabela "users" exista ao iniciar o servidor

@@ -341,7 +341,86 @@ async function createInitialAdmin() {
 
 // Chamar a função ao iniciar o servidor
 createInitialAdmin();
+// Quando um administrador se conecta
+io.on('connection', (socket) => {
+    if (socket.user.role === 'admin') {
+      admins[socket.user.id] = { queue: [], currentClient: null, timer: null };
+      console.log(`Administrador conectado: ${socket.user.id}`);
+  
+      // Notificar todos os clientes sobre o novo admin online
+      io.emit('adminOnline', { id: socket.user.id, username: socket.user.username });
+    }
+  
+    // Quando um administrador se desconecta
+    socket.on('disconnect', () => {
+      if (socket.user.role === 'admin') {
+        delete admins[socket.user.id];
+        console.log(`Administrador desconectado: ${socket.user.id}`);
+  
+        // Notificar todos os clientes sobre o admin offline
+        io.emit('adminOffline', { id: socket.user.id });
+      }
+    });
+  });
 
+  const onlineUsers = {}; // { userId: socketId }
+
+io.on('connection', (socket) => {
+  if (socket.user.role === 'user') {
+    onlineUsers[socket.user.id] = socket.id;
+    console.log(`Usuário conectado: ${socket.user.id}`);
+
+    // Notificar admins sobre o novo usuário online
+    Object.keys(admins).forEach((adminId) => {
+      io.to(adminId).emit('userOnline', { id: socket.user.id, username: socket.user.username });
+    });
+  }
+
+  socket.on('disconnect', () => {
+    if (socket.user.role === 'user') {
+      delete onlineUsers[socket.user.id];
+      console.log(`Usuário desconectado: ${socket.user.id}`);
+
+      // Notificar admins sobre o usuário offline
+      Object.keys(admins).forEach((adminId) => {
+        io.to(adminId).emit('userOffline', { id: socket.user.id });
+      });
+    }
+  });
+});
+// Quando um usuário solicita um chat
+socket.on('requestChat', (adminId) => {
+    const admin = admins[adminId];
+    if (!admin) {
+      return socket.emit('error', 'Administrador não encontrado.');
+    }
+  
+    if (admin.currentClient) {
+      return socket.emit('error', 'O administrador está ocupado.');
+    }
+  
+    // Enviar notificação ao admin
+    io.to(adminId).emit('chatRequest', { clientId: socket.user.id, username: socket.user.username });
+  
+    // Aguardar resposta do admin
+    socket.once('chatAccepted', () => {
+      startChat(adminId, socket.user.id);
+    });
+  
+    socket.once('chatRejected', () => {
+      socket.emit('error', 'O administrador recusou o chat.');
+    });
+  });
+  
+  // Quando o admin aceita ou rejeita o chat
+  socket.on('acceptChat', (clientId) => {
+    io.to(clientId).emit('chatAccepted');
+  });
+  
+  socket.on('rejectChat', (clientId) => {
+    io.to(clientId).emit('chatRejected');
+  });
+  
 // Inicia o servidor
 server.listen(PORT, () => {
   console.log(`Servidor rodando em http://localhost:${PORT}`);

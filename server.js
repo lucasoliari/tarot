@@ -282,22 +282,43 @@ function endChat(adminId) {
 }
 
 // Garantir que a tabela "users" exista ao iniciar o servidor
+// Garantir que a tabela "users" exista ao iniciar o servidor
 pool.query(`
-  CREATE TABLE IF NOT EXISTS users (
-    id SERIAL PRIMARY KEY,
-    username VARCHAR(255) NOT NULL,
-    email VARCHAR(255) NOT NULL UNIQUE,
-    password VARCHAR(255) NOT NULL,
-    role VARCHAR(50) DEFAULT 'user',
-    status VARCHAR(50) DEFAULT 'offline'
-  )
-`, (err, res) => {
-  if (err) {
-    console.error('Erro ao criar tabela:', err);
-  } else {
-    console.log('Tabela "users" criada com sucesso!');
-  }
-});
+    CREATE TABLE IF NOT EXISTS users (
+      id SERIAL PRIMARY KEY,
+      username VARCHAR(255) NOT NULL,
+      email VARCHAR(255) NOT NULL UNIQUE,
+      password VARCHAR(255) NOT NULL,
+      role VARCHAR(50) DEFAULT 'user'
+    )
+  `, async (err, res) => {
+    if (err) {
+      console.error('Erro ao criar tabela:', err);
+    } else {
+      console.log('Tabela "users" criada com sucesso!');
+  
+      // Verificar se a coluna "status" existe e, se não, adicioná-la
+      try {
+        const columnExistsResult = await pool.query(`
+          SELECT column_name
+          FROM information_schema.columns
+          WHERE table_name = 'users' AND column_name = 'status'
+        `);
+  
+        if (columnExistsResult.rows.length === 0) {
+          // A coluna "status" não existe, então adicioná-la
+          await pool.query(`
+            ALTER TABLE users ADD COLUMN status VARCHAR(50) DEFAULT 'offline';
+          `);
+          console.log('Coluna "status" adicionada à tabela "users".');
+        } else {
+          console.log('Coluna "status" já existe na tabela "users".');
+        }
+      } catch (err) {
+        console.error('Erro ao verificar ou adicionar a coluna "status":', err);
+      }
+    }
+  });
 
 // Função para criar um administrador inicial
 async function createInitialAdmin() {

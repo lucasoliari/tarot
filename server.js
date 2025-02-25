@@ -242,26 +242,25 @@ io.on('connection', (socket) => {
     });
   });
 
-  // Cliente entra na fila
   socket.on('joinQueue', (adminId) => {
     if (!admins[adminId]) {
-      console.error('Administrador não encontrado na fila:', adminId);
       return socket.emit('error', 'Administrador não encontrado');
     }
-
+  
     // Adicionar cliente à fila do administrador
     admins[adminId].queue.push(socket.user.id);
     clients[socket.user.id] = adminId;
+  
     console.log(`Cliente ${socket.user.id} entrou na fila do admin ${adminId}`);
-
+  
     // Notificar administrador sobre a fila
     io.to(adminId).emit('updateQueue', admins[adminId].queue);
-
+  
     // Se não houver cliente ativo, iniciar o chat imediatamente
     if (!admins[adminId].currentClient) {
       startChat(adminId, socket.user.id);
     }
-  });
+  
 
   // Enviar mensagem
   socket.on('sendMessage', ({ to, message }) => {
@@ -289,12 +288,12 @@ io.on('connection', (socket) => {
       endChat(socket.user.id);
     }
   });
-  
+
   socket.on('disconnect'), async () => {
     if (socket.user.role === 'admin') {
       await pool.query('UPDATE users SET status = $1 WHERE id = $2', ['offline', socket.user.id]);
     }}
-
+  
 });
 
 // Função para iniciar o chat
@@ -401,7 +400,7 @@ async function createInitialAdmin() {
 
 // Chamar a função ao iniciar o servidor
 createInitialAdmin();
-
+})
 // Inicia o servidor
 server.listen(PORT, () => {
   console.log(`Servidor rodando em http://localhost:${PORT}`);

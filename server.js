@@ -3,14 +3,12 @@ const bodyParser = require('body-parser');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 const cors = require('cors');
-
 const app = express();
 const PORT = process.env.PORT || 3000; // Usa a porta fornecida pelo Render ou 3000 localmente
 const SECRET_KEY = process.env.SECRET_KEY || 'sua_chave_secreta_aqui';
-const express = require('express');
 const http = require('http');
 const { Server } = require('socket.io');
-const jwt = require('jsonwebtoken');
+
 
 const app = express();
 const server = http.createServer(app);

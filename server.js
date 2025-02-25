@@ -208,6 +208,7 @@ app.post('/api/signup', async (req, res) => {
     }
   });
 
+
 // Rota de Login
 app.post('/api/login', async (req, res) => {
     const { email, password } = req.body;
@@ -224,7 +225,14 @@ app.post('/api/login', async (req, res) => {
       if (!isMatch) {
         return res.status(400).json({ error: 'Email ou senha inválidos.' });
       }
-  
+     // Atualiza o status para 'online'
+     await pool.query('UPDATE users SET status = $1 WHERE id = $2', ['online', user.id]);
+
+     const token = jwt.sign(
+       { id: user.id, email: user.email, role: user.role },
+       SECRET_KEY,
+       { expiresIn: '1h' }
+     );
       const token = jwt.sign(
         { id: user.id, email: user.email, role: user.role }, // Inclui a role no token
         SECRET_KEY,
@@ -237,6 +245,23 @@ app.post('/api/login', async (req, res) => {
       res.status(500).json({ error: 'Erro interno do servidor.' });
     }
   });
+
+// Rota para listar administradores online
+app.get('/api/admins-online', async (req, res) => {
+  try {
+    // Consulta o banco de dados para buscar administradores com status "online"
+    const result = await pool.query(
+      'SELECT id, username, email FROM users WHERE role = $1 AND status = $2',
+      ['admin', 'online']
+    );
+
+    const adminsOnline = result.rows;
+    res.json(adminsOnline); // Retorna a lista de administradores online
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Erro ao buscar administradores online.' });
+  }
+});
 
 // Middleware para verificar o token JWT
 function authenticateToken(socket, next) {

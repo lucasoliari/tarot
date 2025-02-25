@@ -25,7 +25,41 @@ app.use(cors({
 }));
 
 // Middleware
-
+// Middleware para verificar se o usuário é admin
+function isAdmin(req, res, next) {
+    const token = req.headers.authorization;
+    if (!token) return res.status(401).json({ error: 'Token não fornecido.' });
+  
+    jwt.verify(token, SECRET_KEY, (err, decoded) => {
+      if (err || decoded.role !== 'admin') {
+        return res.status(403).json({ error: 'Acesso negado.' });
+      }
+      req.user = decoded; // Armazena os dados do usuário no objeto `req`
+      next();
+    });
+  }
+  
+  // Rota para criar um novo administrador
+  app.post('/api/admin/create', isAdmin, async (req, res) => {
+    const { username, email, password } = req.body;
+  
+    if (!username || !email || !password) {
+      return res.status(400).json({ error: 'Todos os campos são obrigatórios.' });
+    }
+  
+    try {
+      const hashedPassword = await bcrypt.hash(password, 10);
+      await pool.query(
+        'INSERT INTO users (username, email, password, role) VALUES ($1, $2, $3, $4)',
+        [username, email, hashedPassword, 'admin']
+      );
+      res.json({ message: 'Administrador criado com sucesso!' });
+    } catch (err) {
+      console.error(err);
+      res.status(500).json({ error: 'Erro ao criar administrador.' });
+    }
+  });
+  
 // Middleware para verificar se o usuário é admin
 function isAdmin(req, res, next) {
     const token = req.headers.authorization;

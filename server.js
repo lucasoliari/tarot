@@ -19,6 +19,14 @@ const io = new Server(server, {
 const PORT = process.env.PORT || 3000;
 const SECRET_KEY = process.env.SECRET_KEY || 'sua_chave_secreta_aqui';
 
+
+// Configuração do CORS
+app.use(cors({
+  origin: '*', // Substitua pela URL do frontend
+}));
+
+// Middleware
+
 // Função para criar um administrador inicial
 async function createInitialAdmin() {
     try {
@@ -42,13 +50,6 @@ async function createInitialAdmin() {
   // Chamar a função ao iniciar o servidor
   createInitialAdmin();
   
-// Configuração do CORS
-app.use(cors({
-  origin: '*', // Substitua pela URL do frontend
-}));
-
-// Middleware
-
 // Middleware para verificar se o usuário é admin
 function isAdmin(req, res, next) {
     const token = req.headers.authorization;

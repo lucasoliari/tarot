@@ -188,26 +188,6 @@ app.get('/api/admin/queue', isAdmin, async (req, res) => {
     res.status(500).json({ error: 'Erro interno do servidor.' });
   }
 });
-// Verificar se a coluna "status" existe e, se não, adicioná-la
-try {
-  const columnExistsResult = await pool.query(`
-    SELECT column_name
-    FROM information_schema.columns
-    WHERE table_name = 'users' AND column_name = 'status'
-  `);
-
-  if (columnExistsResult.rows.length === 0) {
-    await pool.query(`
-      ALTER TABLE users ADD COLUMN status VARCHAR(50) DEFAULT 'offline';
-    `);
-    console.log('Coluna "status" adicionada à tabela "users".');
-  } else {
-    console.log('Coluna "status" já existe na tabela "users".');
-  }
-} catch (err) {
-  console.error('Erro ao verificar ou adicionar a coluna "status":', err);
-}
-
 
 // Middleware para verificar o token JWT no Socket.IO
 function authenticateToken(socket, next) {

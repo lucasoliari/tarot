@@ -10,7 +10,7 @@ const SECRET_KEY = process.env.SECRET_KEY || 'sua_chave_secreta_aqui';
 
 // Configuração do CORS
 app.use(cors({
-  origin: process.env.FRONTEND_URL || 'https://snazzy-douhua-3ce4d9.netlify.app/cadastro.html', // Substitua pelo domínio do frontend
+  origin: process.env.FRONTEND_URL || '*', // Substitua pelo domínio do frontend
 }));
 
 // Middleware

@@ -25,6 +25,40 @@ app.use(cors({
 }));
 
 // Middleware
+
+// Middleware para verificar se o usuário é admin
+function isAdmin(req, res, next) {
+    const token = req.headers.authorization;
+    if (!token) return res.status(401).json({ error: 'Token não fornecido.' });
+  
+    jwt.verify(token, SECRET_KEY, (err, decoded) => {
+      if (err || decoded.role !== 'admin') {
+        return res.status(403).json({ error: 'Acesso negado.' });
+      }
+      next();
+    });
+  }
+  
+  // Rota para listar a fila de espera do admin
+  app.get('/api/admin/queue', isAdmin, async (req, res) => {
+    const adminId = req.user.id; // ID do admin extraído do token
+    const admin = admins[adminId];
+    if (!admin) {
+      return res.status(404).json({ error: 'Administrador não encontrado.' });
+    }
+  
+    try {
+      const queue = admin.queue.map((clientId) => {
+        return { id: clientId, username: 'Cliente X', email: 'lucas-oliari@hotmail.com' }; // Substitua por dados reais
+      });
+  
+      res.json(queue);
+    } catch (err) {
+      console.error(err);
+      res.status(500).json({ error: 'Erro interno do servidor.' });
+    }
+  });
+
 app.use(bodyParser.json());
 
 // Configuração do PostgreSQL
@@ -58,20 +92,20 @@ pool.query(`
 
 // Rota de Cadastro
 app.post('/api/signup', async (req, res) => {
-  const { username, email, password } = req.body;
-  const hashedPassword = await bcrypt.hash(password, 10);
-
-  try {
-    await pool.query(
-      'INSERT INTO users (username, email, password) VALUES ($1, $2, $3)',
-      [username, email, hashedPassword]
-    );
-    res.json({ message: 'Usuário cadastrado com sucesso!' });
-  } catch (err) {
-    console.error(err);
-    res.status(400).json({ error: 'Erro ao cadastrar usuário.' });
-  }
-});
+    const { username, email, password, role = 'user' } = req.body; // Role padrão é 'user'
+    const hashedPassword = await bcrypt.hash(password, 10);
+  
+    try {
+      await pool.query(
+        'INSERT INTO users (username, email, password, role) VALUES ($1, $2, $3, $4)',
+        [username, email, hashedPassword, role]
+      );
+      res.json({ message: 'Usuário cadastrado com sucesso!' });
+    } catch (err) {
+      console.error(err);
+      res.status(400).json({ error: 'Erro ao cadastrar usuário.' });
+    }
+  });
 
 // Rota de Login
 app.post('/api/login', async (req, res) => {

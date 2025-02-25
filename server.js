@@ -109,28 +109,33 @@ app.post('/api/signup', async (req, res) => {
 
 // Rota de Login
 app.post('/api/login', async (req, res) => {
-  const { email, password } = req.body;
-
-  try {
-    const result = await pool.query('SELECT * FROM users WHERE email = $1', [email]);
-    const user = result.rows[0];
-
-    if (!user) {
-      return res.status(400).json({ error: 'Email ou senha inválidos.' });
+    const { email, password } = req.body;
+  
+    try {
+      const result = await pool.query('SELECT * FROM users WHERE email = $1', [email]);
+      const user = result.rows[0];
+  
+      if (!user) {
+        return res.status(400).json({ error: 'Email ou senha inválidos.' });
+      }
+  
+      const isMatch = await bcrypt.compare(password, user.password);
+      if (!isMatch) {
+        return res.status(400).json({ error: 'Email ou senha inválidos.' });
+      }
+  
+      const token = jwt.sign(
+        { id: user.id, email: user.email, role: user.role }, // Inclui a role no token
+        SECRET_KEY,
+        { expiresIn: '1h' }
+      );
+  
+      res.json({ message: 'Login bem-sucedido!', token });
+    } catch (err) {
+      console.error(err);
+      res.status(500).json({ error: 'Erro interno do servidor.' });
     }
-
-    const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) {
-      return res.status(400).json({ error: 'Email ou senha inválidos.' });
-    }
-
-    const token = jwt.sign({ id: user.id, role: user.role }, SECRET_KEY, { expiresIn: '1h' });
-    res.json({ message: 'Login bem-sucedido!', token });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Erro interno do servidor.' });
-  }
-});
+  });
 
 // Middleware para verificar o token JWT
 function authenticateToken(socket, next) {

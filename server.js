@@ -27,28 +27,7 @@ app.use(cors({
 
 // Middleware
 
-// Função para criar um administrador inicial
-async function createInitialAdmin() {
-    try {
-      const result = await pool.query('SELECT * FROM users WHERE role = $1', ['admin']);
-      if (result.rows.length === 0) {
-        // Nenhum admin encontrado, cria um novo
-        const hashedPassword = await bcrypt.hash('admin123', 10); // Senha padrão: admin123
-        await pool.query(
-          'INSERT INTO users (username, email, password, role) VALUES ($1, $2, $3, $4)',
-          ['AdminInicial', 'admin@example.com', hashedPassword, 'admin']
-        );
-        console.log('Administrador inicial criado com sucesso!');
-      } else {
-        console.log('Administrador já existe no banco de dados.');
-      }
-    } catch (err) {
-      console.error('Erro ao criar administrador inicial:', err);
-    }
-  }
-  
-  // Chamar a função ao iniciar o servidor
-  createInitialAdmin();
+
   
 // Middleware para verificar se o usuário é admin
 function isAdmin(req, res, next) {
@@ -173,6 +152,28 @@ const pool = new Pool({
   },
 });
 
+// Função para criar um administrador inicial
+async function createInitialAdmin() {
+    try {
+      const result = await pool.query('SELECT * FROM users WHERE role = $1', ['admin']);
+      if (result.rows.length === 0) {
+        // Nenhum admin encontrado, cria um novo
+        const hashedPassword = await bcrypt.hash('admin123', 10); // Senha padrão: admin123
+        await pool.query(
+          'INSERT INTO users (username, email, password, role) VALUES ($1, $2, $3, $4)',
+          ['AdminInicial', 'admin@example.com', hashedPassword, 'admin']
+        );
+        console.log('Administrador inicial criado com sucesso!');
+      } else {
+        console.log('Administrador já existe no banco de dados.');
+      }
+    } catch (err) {
+      console.error('Erro ao criar administrador inicial:', err);
+    }
+  }
+  
+  // Chamar a função ao iniciar o servidor
+  createInitialAdmin();
 // Garantir que a tabela "users" exista ao iniciar o servidor
 pool.query(`
   CREATE TABLE IF NOT EXISTS users (

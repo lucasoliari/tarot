@@ -233,12 +233,7 @@ app.post('/api/login', async (req, res) => {
        SECRET_KEY,
        { expiresIn: '1h' }
      );
-      const token = jwt.sign(
-        { id: user.id, email: user.email, role: user.role }, // Inclui a role no token
-        SECRET_KEY,
-        { expiresIn: '1h' }
-      );
-  
+      
       res.json({ message: 'Login bem-sucedido!', token });
     } catch (err) {
       console.error(err);

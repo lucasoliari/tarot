@@ -42,6 +42,7 @@ function isAdmin(req, res, next) {
 
   jwt.verify(token, SECRET_KEY, (err, decoded) => {
     if (err || decoded.role !== 'admin') {
+      console.error('Erro ao verificar token:', err || 'Usuário não é admin');
       return res.status(403).json({ error: 'Acesso negado.' });
     }
     req.user = decoded; // Armazena os dados do usuário no objeto `req`
@@ -65,7 +66,7 @@ app.post('/api/admin/create', isAdmin, async (req, res) => {
     );
     res.json({ message: 'Administrador criado com sucesso!' });
   } catch (err) {
-    console.error(err);
+    console.error('Erro ao criar administrador:', err);
     res.status(500).json({ error: 'Erro ao criar administrador.' });
   }
 });
@@ -83,13 +84,14 @@ app.post('/api/admin/promote', isAdmin, async (req, res) => {
     const user = result.rows[0];
 
     if (!user) {
+      console.error('Usuário não encontrado para promoção:', email);
       return res.status(404).json({ error: 'Usuário não encontrado.' });
     }
 
     await pool.query('UPDATE users SET role = $1 WHERE email = $2', ['admin', email]);
     res.json({ message: `Usuário ${email} foi promovido a administrador.` });
   } catch (err) {
-    console.error(err);
+    console.error('Erro ao promover usuário:', err);
     res.status(500).json({ error: 'Erro ao promover usuário.' });
   }
 });
@@ -106,7 +108,7 @@ app.post('/api/signup', async (req, res) => {
     );
     res.json({ message: 'Usuário cadastrado com sucesso!' });
   } catch (err) {
-    console.error(err);
+    console.error('Erro ao cadastrar usuário:', err);
     res.status(400).json({ error: 'Erro ao cadastrar usuário.' });
   }
 });
@@ -120,11 +122,13 @@ app.post('/api/login', async (req, res) => {
     const user = result.rows[0];
 
     if (!user) {
+      console.error('Email ou senha inválidos:', email);
       return res.status(400).json({ error: 'Email ou senha inválidos.' });
     }
 
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
+      console.error('Senha incorreta para o email:', email);
       return res.status(400).json({ error: 'Email ou senha inválidos.' });
     }
 
@@ -139,7 +143,7 @@ app.post('/api/login', async (req, res) => {
 
     res.json({ message: 'Login bem-sucedido!', token });
   } catch (err) {
-    console.error(err);
+    console.error('Erro ao realizar login:', err);
     res.status(500).json({ error: 'Erro interno do servidor.' });
   }
 });
@@ -153,10 +157,35 @@ app.get('/api/admins-online', async (req, res) => {
     );
 
     const adminsOnline = result.rows;
+    console.log('Administradores online encontrados:', adminsOnline); // Log dos administradores online
     res.json(adminsOnline); // Retorna a lista de administradores online
   } catch (err) {
-    console.error(err);
+    console.error('Erro ao buscar administradores online:', err);
     res.status(500).json({ error: 'Erro ao buscar administradores online.' });
+  }
+});
+
+// Rota para listar a fila de espera do admin
+app.get('/api/admin/queue', isAdmin, async (req, res) => {
+  const adminId = req.user.id; // ID do admin extraído do token
+  const admin = admins[adminId];
+
+  if (!admin) {
+    console.error('Administrador não encontrado na fila:', adminId);
+    return res.status(404).json({ error: 'Administrador não encontrado.' });
+  }
+
+  try {
+    const queue = await Promise.all(admin.queue.map(async (clientId) => {
+      const result = await pool.query('SELECT id, username, email FROM users WHERE id = $1', [clientId]);
+      return result.rows[0];
+    }));
+
+    console.log('Fila de espera do admin:', queue); // Log da fila de espera
+    res.json(queue);
+  } catch (err) {
+    console.error('Erro ao carregar fila de espera:', err);
+    res.status(500).json({ error: 'Erro interno do servidor.' });
   }
 });
 
@@ -166,7 +195,10 @@ function authenticateToken(socket, next) {
   if (!token) return next(new Error('Token não fornecido'));
 
   jwt.verify(token, SECRET_KEY, (err, user) => {
-    if (err) return next(new Error('Token inválido'));
+    if (err) {
+      console.error('Token inválido:', err);
+      return next(new Error('Token inválido'));
+    }
     socket.user = user; // Armazena o usuário no objeto socket
     next();
   });
@@ -191,6 +223,7 @@ io.on('connection', (socket) => {
   // Cliente entra na fila
   socket.on('joinQueue', (adminId) => {
     if (!admins[adminId]) {
+      console.error('Administrador não encontrado na fila:', adminId);
       return socket.emit('error', 'Administrador não encontrado');
     }
 

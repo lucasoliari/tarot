@@ -29,11 +29,11 @@ app.use(bodyParser.json());
 
 // Configuração do PostgreSQL
 const pool = new Pool({
-  user: process.env.DB_USER,
-  host: process.env.DB_HOST,
-  database: process.env.DB_NAME,
-  password: process.env.DB_PASSWORD,
-  port: process.env.DB_PORT || 5432,
+  user: login_p7n8_user,
+  host: dpg-cutqkfd2ng1s73dd5ui0-a,
+  database:login_p7n8,
+  password:uhF5GKbxzXYyS0jtx9PDj4lIcRpnKk00,
+  port: 5432 || 5432,
   ssl: {
     rejectUnauthorized: false, // Necessário para conexões SSL no Render
   },

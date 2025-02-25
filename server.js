@@ -150,10 +150,7 @@ app.post('/api/login', async (req, res) => {
 x
 });
 
-socket.on('disconnect'), async () => {
-  if (socket.user.role === 'admin') {
-    await pool.query('UPDATE users SET status = $1 WHERE id = $2', ['offline', socket.user.id]);
-  }}
+
 
 // Rota para listar administradores online
 app.get('/api/admins-online', async (req, res) => {
@@ -292,6 +289,12 @@ io.on('connection', (socket) => {
       endChat(socket.user.id);
     }
   });
+  
+  socket.on('disconnect'), async () => {
+    if (socket.user.role === 'admin') {
+      await pool.query('UPDATE users SET status = $1 WHERE id = $2', ['offline', socket.user.id]);
+    }}
+
 });
 
 // Função para iniciar o chat

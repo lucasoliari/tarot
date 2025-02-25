@@ -2,7 +2,7 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
-const { Pool } = require('pg'); // Corrigido o espaço extra
+const { Pool } = require('pg'); // PostgreSQL
 const cors = require('cors');
 const http = require('http');
 const { Server } = require('socket.io');
@@ -182,24 +182,10 @@ io.use(authenticateToken);
 io.on('connection', (socket) => {
   console.log(`Usuário conectado: ${socket.user.id}`);
 
-  // Quando um administrador se conecta
+  // Verificar se é um administrador
   if (socket.user.role === 'admin') {
     admins[socket.user.id] = { queue: [], currentClient: null, timer: null };
     console.log(`Administrador conectado: ${socket.user.id}`);
-
-    // Notificar todos os clientes sobre o novo admin online
-    io.emit('adminOnline', { id: socket.user.id, username: socket.user.username });
-  }
-
-  // Quando um usuário se conecta
-  if (socket.user.role === 'user') {
-    clients[socket.user.id] = socket.id;
-    console.log(`Usuário conectado: ${socket.user.id}`);
-
-    // Notificar admins sobre o novo usuário online
-    Object.keys(admins).forEach((adminId) => {
-      io.to(adminId).emit('userOnline', { id: socket.user.id, username: socket.user.username });
-    });
   }
 
   // Cliente entra na fila
@@ -225,39 +211,6 @@ io.on('connection', (socket) => {
   // Enviar mensagem
   socket.on('sendMessage', ({ to, message }) => {
     io.to(to).emit('receiveMessage', { from: socket.user.id, message });
-  });
-
-  // Quando um usuário solicita um chat
-  socket.on('requestChat', (adminId) => {
-    const admin = admins[adminId];
-    if (!admin) {
-      return socket.emit('error', 'Administrador não encontrado.');
-    }
-
-    if (admin.currentClient) {
-      return socket.emit('error', 'O administrador está ocupado.');
-    }
-
-    // Enviar notificação ao admin
-    io.to(adminId).emit('chatRequest', { clientId: socket.user.id, username: socket.user.username });
-
-    // Aguardar resposta do admin
-    socket.once('chatAccepted', () => {
-      startChat(adminId, socket.user.id);
-    });
-
-    socket.once('chatRejected', () => {
-      socket.emit('error', 'O administrador recusou o chat.');
-    });
-  });
-
-  // Quando o admin aceita ou rejeita o chat
-  socket.on('acceptChat', (clientId) => {
-    io.to(clientId).emit('chatAccepted');
-  });
-
-  socket.on('rejectChat', (clientId) => {
-    io.to(clientId).emit('chatRejected');
   });
 
   // Desconectar

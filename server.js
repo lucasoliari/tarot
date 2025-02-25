@@ -2,7 +2,7 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
-const { Pool } = require('pg'); // PostgreSQL
+const { Pool } = require('pg'); // Corrigido o espaço extra
 const cors = require('cors');
 const http = require('http');
 const { Server } = require('socket.io');
@@ -19,237 +19,134 @@ const io = new Server(server, {
 const PORT = process.env.PORT || 3000;
 const SECRET_KEY = process.env.SECRET_KEY || 'sua_chave_secreta_aqui';
 
-
 // Configuração do CORS
-app.use(cors({
-  origin: '*', // Substitua pela URL do frontend
-}));
-
-// Middleware
-
-
-  
-// Middleware para verificar se o usuário é admin
-function isAdmin(req, res, next) {
-    const token = req.headers.authorization;
-    if (!token) return res.status(401).json({ error: 'Token não fornecido.' });
-  
-    jwt.verify(token, SECRET_KEY, (err, decoded) => {
-      if (err || decoded.role !== 'admin') {
-        return res.status(403).json({ error: 'Acesso negado.' });
-      }
-      req.user = decoded; // Armazena os dados do usuário no objeto `req`
-      next();
-    });
-  }
-  
-  // Rota para promover um usuário a administrador
-  app.post('/api/admin/promote', isAdmin, async (req, res) => {
-    const { email } = req.body;
-  
-    if (!email) {
-      return res.status(400).json({ error: 'O campo "email" é obrigatório.' });
-    }
-  
-    try {
-      // Verifica se o usuário existe
-      const result = await pool.query('SELECT * FROM users WHERE email = $1', [email]);
-      const user = result.rows[0];
-  
-      if (!user) {
-        return res.status(404).json({ error: 'Usuário não encontrado.' });
-      }
-  
-      // Atualiza a role do usuário para 'admin'
-      await pool.query('UPDATE users SET role = $1 WHERE email = $2', ['admin', email]);
-  
-      res.json({ message: `Usuário ${email} foi promovido a administrador.` });
-    } catch (err) {
-      console.error(err);
-      res.status(500).json({ error: 'Erro ao promover usuário.' });
-    }
-  });
-
-// Middleware para verificar se o usuário é admin
-function isAdmin(req, res, next) {
-    const token = req.headers.authorization;
-    if (!token) return res.status(401).json({ error: 'Token não fornecido.' });
-  
-    jwt.verify(token, SECRET_KEY, (err, decoded) => {
-      if (err || decoded.role !== 'admin') {
-        return res.status(403).json({ error: 'Acesso negado.' });
-      }
-      req.user = decoded; // Armazena os dados do usuário no objeto `req`
-      next();
-    });
-  }
-  
-  // Rota para criar um novo administrador
-  app.post('/api/admin/create', isAdmin, async (req, res) => {
-    const { username, email, password } = req.body;
-  
-    if (!username || !email || !password) {
-      return res.status(400).json({ error: 'Todos os campos são obrigatórios.' });
-    }
-  
-    try {
-      const hashedPassword = await bcrypt.hash(password, 10);
-      await pool.query(
-        'INSERT INTO users (username, email, password, role) VALUES ($1, $2, $3, $4)',
-        [username, email, hashedPassword, 'admin']
-      );
-      res.json({ message: 'Administrador criado com sucesso!' });
-    } catch (err) {
-      console.error(err);
-      res.status(500).json({ error: 'Erro ao criar administrador.' });
-    }
-  });
-
-// Middleware para verificar se o usuário é admin
-function isAdmin(req, res, next) {
-    const token = req.headers.authorization;
-    if (!token) return res.status(401).json({ error: 'Token não fornecido.' });
-  
-    jwt.verify(token, SECRET_KEY, (err, decoded) => {
-      if (err || decoded.role !== 'admin') {
-        return res.status(403).json({ error: 'Acesso negado.' });
-      }
-      next();
-    });
-  }
-  
-  // Rota para listar a fila de espera do admin
-  app.get('/api/admin/queue', isAdmin, async (req, res) => {
-    const adminId = req.user.id; // ID do admin extraído do token
-    const admin = admins[adminId];
-    if (!admin) {
-      return res.status(404).json({ error: 'Administrador não encontrado.' });
-    }
-  
-    try {
-      const queue = admin.queue.map((clientId) => {
-        return { id: clientId, username: 'Cliente X', email: 'lucas-oliari@hotmail.com' }; // Substitua por dados reais
-      });
-  
-      res.json(queue);
-    } catch (err) {
-      console.error(err);
-      res.status(500).json({ error: 'Erro interno do servidor.' });
-    }
-  });
-
+app.use(cors({ origin: '*' }));
 app.use(bodyParser.json());
 
 // Configuração do PostgreSQL
 const pool = new Pool({
   user: 'login_p7n8_user',
   host: 'dpg-cutqkfd2ng1s73dd5ui0-a',
-  database:'login_p7n8',
-  password:'uhF5GKbxzXYyS0jtx9PDj4lIcRpnKk00',
+  database: 'login_p7n8',
+  password: 'uhF5GKbxzXYyS0jtx9PDj4lIcRpnKk00',
   port: 5432,
   ssl: {
     rejectUnauthorized: false, // Necessário para conexões SSL no Render
   },
 });
 
-// Função para criar um administrador inicial
-async function createInitialAdmin() {
-    try {
-      const result = await pool.query('SELECT * FROM users WHERE role = $1', ['admin']);
-      if (result.rows.length === 0) {
-        // Nenhum admin encontrado, cria um novo
-        const hashedPassword = await bcrypt.hash('admin123', 10); // Senha padrão: admin123
-        await pool.query(
-          'INSERT INTO users (username, email, password, role) VALUES ($1, $2, $3, $4)',
-          ['AdminInicial', 'admin@example.com', hashedPassword, 'admin']
-        );
-        console.log('Administrador inicial criado com sucesso!');
-      } else {
-        console.log('Administrador já existe no banco de dados.');
-      }
-    } catch (err) {
-      console.error('Erro ao criar administrador inicial:', err);
+// Middleware para verificar se o usuário é admin
+function isAdmin(req, res, next) {
+  const token = req.headers.authorization;
+  if (!token) return res.status(401).json({ error: 'Token não fornecido.' });
+
+  jwt.verify(token, SECRET_KEY, (err, decoded) => {
+    if (err || decoded.role !== 'admin') {
+      return res.status(403).json({ error: 'Acesso negado.' });
     }
+    req.user = decoded; // Armazena os dados do usuário no objeto `req`
+    next();
+  });
+}
+
+// Rota para criar um novo administrador
+app.post('/api/admin/create', isAdmin, async (req, res) => {
+  const { username, email, password } = req.body;
+
+  if (!username || !email || !password) {
+    return res.status(400).json({ error: 'Todos os campos são obrigatórios.' });
   }
-  
-  // Chamar a função ao iniciar o servidor
-  createInitialAdmin();
-// Garantir que a tabela "users" exista ao iniciar o servidor
-pool.query(`
-  CREATE TABLE IF NOT EXISTS users (
-    id SERIAL PRIMARY KEY,
-    username VARCHAR(255) NOT NULL,
-    email VARCHAR(255) NOT NULL UNIQUE,
-    password VARCHAR(255) NOT NULL,
-    role VARCHAR(50) DEFAULT 'user'
-  )
-`, (err, res) => {
-  if (err) {
-    console.error('Erro ao criar tabela:', err);
-  } else {
-    console.log('Tabela "users" criada com sucesso!');
+
+  try {
+    const hashedPassword = await bcrypt.hash(password, 10);
+    await pool.query(
+      'INSERT INTO users (username, email, password, role) VALUES ($1, $2, $3, $4)',
+      [username, email, hashedPassword, 'admin']
+    );
+    res.json({ message: 'Administrador criado com sucesso!' });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Erro ao criar administrador.' });
+  }
+});
+
+// Rota para promover um usuário a administrador
+app.post('/api/admin/promote', isAdmin, async (req, res) => {
+  const { email } = req.body;
+
+  if (!email) {
+    return res.status(400).json({ error: 'O campo "email" é obrigatório.' });
+  }
+
+  try {
+    const result = await pool.query('SELECT * FROM users WHERE email = $1', [email]);
+    const user = result.rows[0];
+
+    if (!user) {
+      return res.status(404).json({ error: 'Usuário não encontrado.' });
+    }
+
+    await pool.query('UPDATE users SET role = $1 WHERE email = $2', ['admin', email]);
+    res.json({ message: `Usuário ${email} foi promovido a administrador.` });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Erro ao promover usuário.' });
   }
 });
 
 // Rota de Cadastro
 app.post('/api/signup', async (req, res) => {
-    const { username, email, password, role = 'user' } = req.body; // Role padrão é 'user'
-    const hashedPassword = await bcrypt.hash(password, 10);
-  
-    try {
-      await pool.query(
-        'INSERT INTO users (username, email, password, role) VALUES ($1, $2, $3, $4)',
-        [username, email, hashedPassword, role]
-      );
-      res.json({ message: 'Usuário cadastrado com sucesso!' });
-    } catch (err) {
-      console.error(err);
-      res.status(400).json({ error: 'Erro ao cadastrar usuário.' });
-    }
-  });
+  const { username, email, password, role = 'user' } = req.body; // Role padrão é 'user'
 
+  try {
+    const hashedPassword = await bcrypt.hash(password, 10);
+    await pool.query(
+      'INSERT INTO users (username, email, password, role) VALUES ($1, $2, $3, $4)',
+      [username, email, hashedPassword, role]
+    );
+    res.json({ message: 'Usuário cadastrado com sucesso!' });
+  } catch (err) {
+    console.error(err);
+    res.status(400).json({ error: 'Erro ao cadastrar usuário.' });
+  }
+});
 
 // Rota de Login
 app.post('/api/login', async (req, res) => {
-    const { email, password } = req.body;
-  
-    try {
-      const result = await pool.query('SELECT * FROM users WHERE email = $1', [email]);
-      const user = result.rows[0];
-  
-      if (!user) {
-        return res.status(400).json({ error: 'Email ou senha inválidos.' });
-      }
-  
-      const isMatch = await bcrypt.compare(password, user.password);
-      if (!isMatch) {
-        return res.status(400).json({ error: 'Email ou senha inválidos.' });
-      }
-     // Atualiza o status para 'online'
-     await pool.query('UPDATE users SET status = $1 WHERE id = $2', ['online', user.id]);
+  const { email, password } = req.body;
 
-     const token = jwt.sign(
-       { id: user.id, email: user.email, role: user.role },
-       SECRET_KEY,
-       { expiresIn: '1h' }
-     );
-      const token = jwt.sign(
-        { id: user.id, email: user.email, role: user.role }, // Inclui a role no token
-        SECRET_KEY,
-        { expiresIn: '1h' }
-      );
-  
-      res.json({ message: 'Login bem-sucedido!', token });
-    } catch (err) {
-      console.error(err);
-      res.status(500).json({ error: 'Erro interno do servidor.' });
+  try {
+    const result = await pool.query('SELECT * FROM users WHERE email = $1', [email]);
+    const user = result.rows[0];
+
+    if (!user) {
+      return res.status(400).json({ error: 'Email ou senha inválidos.' });
     }
-  });
+
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) {
+      return res.status(400).json({ error: 'Email ou senha inválidos.' });
+    }
+
+    // Atualiza o status para 'online'
+    await pool.query('UPDATE users SET status = $1 WHERE id = $2', ['online', user.id]);
+
+    const token = jwt.sign(
+      { id: user.id, email: user.email, role: user.role }, // Inclui a role no token
+      SECRET_KEY,
+      { expiresIn: '1h' }
+    );
+
+    res.json({ message: 'Login bem-sucedido!', token });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Erro interno do servidor.' });
+  }
+});
 
 // Rota para listar administradores online
 app.get('/api/admins-online', async (req, res) => {
   try {
-    // Consulta o banco de dados para buscar administradores com status "online"
     const result = await pool.query(
       'SELECT id, username, email FROM users WHERE role = $1 AND status = $2',
       ['admin', 'online']
@@ -263,7 +160,7 @@ app.get('/api/admins-online', async (req, res) => {
   }
 });
 
-// Middleware para verificar o token JWT
+// Middleware para verificar o token JWT no Socket.IO
 function authenticateToken(socket, next) {
   const token = socket.handshake.auth.token;
   if (!token) return next(new Error('Token não fornecido'));
@@ -365,19 +262,64 @@ function startChat(adminId, clientId) {
 // Função para encerrar o chat
 function endChat(adminId) {
   const admin = admins[adminId];
-  if (admin.currentClient) {
-    io.to(admin.currentClient).emit('endChat');
-    io.to(adminId).emit('endChat');
-    admin.currentClient = null;
+  if (!admin) return;
 
-    // Iniciar próximo cliente na fila
-    if (admin.queue.length > 0) {
-      const nextClient = admin.queue.shift();
-      startChat(adminId, nextClient);
-      io.to(adminId).emit('updateQueue', admin.queue);
-    }
+  const clientId = admin.currentClient;
+  if (clientId) {
+    io.to(clientId).emit('endChat');
+    io.to(adminId).emit('endChat');
+  }
+
+  admin.currentClient = null;
+  admin.timer = null;
+
+  // Iniciar chat com o próximo cliente na fila
+  const nextClient = admin.queue.shift();
+  if (nextClient) {
+    startChat(adminId, nextClient);
+    io.to(adminId).emit('updateQueue', admin.queue);
   }
 }
+
+// Garantir que a tabela "users" exista ao iniciar o servidor
+pool.query(`
+  CREATE TABLE IF NOT EXISTS users (
+    id SERIAL PRIMARY KEY,
+    username VARCHAR(255) NOT NULL,
+    email VARCHAR(255) NOT NULL UNIQUE,
+    password VARCHAR(255) NOT NULL,
+    role VARCHAR(50) DEFAULT 'user',
+    status VARCHAR(50) DEFAULT 'offline'
+  )
+`, (err, res) => {
+  if (err) {
+    console.error('Erro ao criar tabela:', err);
+  } else {
+    console.log('Tabela "users" criada com sucesso!');
+  }
+});
+
+// Função para criar um administrador inicial
+async function createInitialAdmin() {
+  try {
+    const result = await pool.query('SELECT * FROM users WHERE role = $1', ['admin']);
+    if (result.rows.length === 0) {
+      const hashedPassword = await bcrypt.hash('admin123', 10);
+      await pool.query(
+        'INSERT INTO users (username, email, password, role) VALUES ($1, $2, $3, $4)',
+        ['AdminInicial', 'admin@example.com', hashedPassword, 'admin']
+      );
+      console.log('Administrador inicial criado com sucesso!');
+    } else {
+      console.log('Administrador já existe no banco de dados.');
+    }
+  } catch (err) {
+    console.error('Erro ao criar administrador inicial:', err);
+  }
+}
+
+// Chamar a função ao iniciar o servidor
+createInitialAdmin();
 
 // Inicia o servidor
 server.listen(PORT, () => {

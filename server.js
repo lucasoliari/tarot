@@ -3,7 +3,6 @@ const bodyParser = require('body-parser');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 const cors = require('cors');
-const app = express();
 const PORT = process.env.PORT || 3000; // Usa a porta fornecida pelo Render ou 3000 localmente
 const SECRET_KEY = process.env.SECRET_KEY || 'sua_chave_secreta_aqui';
 const http = require('http');
@@ -19,8 +18,6 @@ const io = new Server(server, {
   },
 });
 
-const PORT = process.env.PORT || 3000;
-const SECRET_KEY = process.env.SECRET_KEY || 'sua_chave_secreta_aqui';
 
 // Middleware para verificar o token JWT
 function authenticateToken(socket, next) {

@@ -19,12 +19,77 @@ const io = new Server(server, {
 const PORT = process.env.PORT || 3000;
 const SECRET_KEY = process.env.SECRET_KEY || 'sua_chave_secreta_aqui';
 
+// Função para criar um administrador inicial
+async function createInitialAdmin() {
+    try {
+      const result = await pool.query('SELECT * FROM users WHERE role = $1', ['admin']);
+      if (result.rows.length === 0) {
+        // Nenhum admin encontrado, cria um novo
+        const hashedPassword = await bcrypt.hash('admin123', 10); // Senha padrão: admin123
+        await pool.query(
+          'INSERT INTO users (username, email, password, role) VALUES ($1, $2, $3, $4)',
+          ['AdminInicial', 'admin@example.com', hashedPassword, 'admin']
+        );
+        console.log('Administrador inicial criado com sucesso!');
+      } else {
+        console.log('Administrador já existe no banco de dados.');
+      }
+    } catch (err) {
+      console.error('Erro ao criar administrador inicial:', err);
+    }
+  }
+  
+  // Chamar a função ao iniciar o servidor
+  createInitialAdmin();
+  
 // Configuração do CORS
 app.use(cors({
   origin: '*', // Substitua pela URL do frontend
 }));
 
 // Middleware
+
+// Middleware para verificar se o usuário é admin
+function isAdmin(req, res, next) {
+    const token = req.headers.authorization;
+    if (!token) return res.status(401).json({ error: 'Token não fornecido.' });
+  
+    jwt.verify(token, SECRET_KEY, (err, decoded) => {
+      if (err || decoded.role !== 'admin') {
+        return res.status(403).json({ error: 'Acesso negado.' });
+      }
+      req.user = decoded; // Armazena os dados do usuário no objeto `req`
+      next();
+    });
+  }
+  
+  // Rota para promover um usuário a administrador
+  app.post('/api/admin/promote', isAdmin, async (req, res) => {
+    const { email } = req.body;
+  
+    if (!email) {
+      return res.status(400).json({ error: 'O campo "email" é obrigatório.' });
+    }
+  
+    try {
+      // Verifica se o usuário existe
+      const result = await pool.query('SELECT * FROM users WHERE email = $1', [email]);
+      const user = result.rows[0];
+  
+      if (!user) {
+        return res.status(404).json({ error: 'Usuário não encontrado.' });
+      }
+  
+      // Atualiza a role do usuário para 'admin'
+      await pool.query('UPDATE users SET role = $1 WHERE email = $2', ['admin', email]);
+  
+      res.json({ message: `Usuário ${email} foi promovido a administrador.` });
+    } catch (err) {
+      console.error(err);
+      res.status(500).json({ error: 'Erro ao promover usuário.' });
+    }
+  });
+
 // Middleware para verificar se o usuário é admin
 function isAdmin(req, res, next) {
     const token = req.headers.authorization;
@@ -59,7 +124,7 @@ function isAdmin(req, res, next) {
       res.status(500).json({ error: 'Erro ao criar administrador.' });
     }
   });
-  
+
 // Middleware para verificar se o usuário é admin
 function isAdmin(req, res, next) {
     const token = req.headers.authorization;

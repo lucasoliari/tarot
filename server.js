@@ -133,8 +133,9 @@ app.post('/api/login', async (req, res) => {
     }
 
     // Atualiza o status para 'online'
-    await pool.query('UPDATE users SET status = $1 WHERE id = $2', ['online', user.id]);
+    await pool.query('UPDATE users SET status = $1 WHERE id = $2', ['online', socket.user.id]);
 
+    
     const token = jwt.sign(
       { id: user.id, email: user.email, role: user.role },
       SECRET_KEY,
@@ -146,7 +147,13 @@ app.post('/api/login', async (req, res) => {
     console.error('Erro ao realizar login:', err);
     res.status(500).json({ error: 'Erro interno do servidor.' });
   }
+x
 });
+
+socket.on('disconnect'), async () => {
+  if (socket.user.role === 'admin') {
+    await pool.query('UPDATE users SET status = $1 WHERE id = $2', ['offline', socket.user.id]);
+  }}
 
 // Rota para listar administradores online
 app.get('/api/admins-online', async (req, res) => {
@@ -189,6 +196,12 @@ app.get('/api/admin/queue', isAdmin, async (req, res) => {
   }
 });
 
+// Notificar administrador sobre a fila
+io.to(adminId).emit('updateQueue', admins[adminId].queue);
+
+// Notificar cliente sobre o início do chat
+io.to(clientId).emit('startChat', { adminId, timer: admin.timer });
+
 // Middleware para verificar o token JWT no Socket.IO
 function authenticateToken(socket, next) {
   const token = socket.handshake.auth.token;
@@ -214,11 +227,23 @@ io.use(authenticateToken);
 io.on('connection', (socket) => {
   console.log(`Usuário conectado: ${socket.user.id}`);
 
-  // Verificar se é um administrador
-  if (socket.user.role === 'admin') {
-    admins[socket.user.id] = { queue: [], currentClient: null, timer: null };
-    console.log(`Administrador conectado: ${socket.user.id}`);
-  }
+  io.on('connection', (socket) => {
+    console.log(`Usuário conectado: ${socket.user.id}`);
+  
+    // Verificar se é um administrador
+    if (socket.user.role === 'admin') {
+      admins[socket.user.id] = { queue: [], currentClient: null, timer: null };
+      console.log(`Administrador conectado: ${socket.user.id}`);
+    }
+  
+    // Quando um administrador se desconecta
+    socket.on('disconnect', () => {
+      if (socket.user.role === 'admin') {
+        delete admins[socket.user.id];
+        console.log(`Administrador desconectado: ${socket.user.id}`);
+      }
+    });
+  });
 
   // Cliente entra na fila
   socket.on('joinQueue', (adminId) => {

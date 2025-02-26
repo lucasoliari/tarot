@@ -1,6 +1,6 @@
 const express = require('express');
 const jwt = require('jsonwebtoken');
-const bcrypt = require('bcrypt');
+const bcrypt = require('bcryptjs');
 const { Pool } = require('pg');
 
 const app = express();
@@ -97,7 +97,7 @@ app.post('/login', async (req, res) => {
     if (result.rows.length === 0) return res.status(401).json({ error: 'Usuário não encontrado' });
 
     const user = result.rows[0];
-    const isPasswordValid = await bcrypt.compare(password, user.senha);
+    const isPasswordValid = await bcryptjs.compare(password, user.senha);
     if (!isPasswordValid) return res.status(401).json({ error: 'Senha incorreta' });
 
     // Atualizar último login

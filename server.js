@@ -8,10 +8,10 @@ app.use(express.json());
 
 // Configuração do banco de dados
 const pool = new Pool({
-  user: 'seu_usuario',
+  user: 'login_p7n8_user',
   host: 'dpg-cutqkfd2ng1s73dd5ui0-a',
-  database: 'seu_banco_de_dados',
-  password: 'sua_senha',
+  database: 'login_p7n8',
+  password: 'uhF5GKbxzXYyS0jtx9PDj4lIcRpnKk00',
   port: 5432,
 });
 

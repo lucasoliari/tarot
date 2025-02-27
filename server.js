@@ -15,6 +15,13 @@ const pool = new Pool({
   port: 5432,
 });
 
+const cors = require('cors');
+
+// Habilitar CORS
+app.use(cors({
+  origin: '*', // Permite todas as origens (ajuste conforme necessário)
+}));
+
 // Middleware de autenticação
 function authenticateToken(req, res, next) {
   const authHeader = req.headers['authorization'];

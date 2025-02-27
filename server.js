@@ -1,7 +1,8 @@
 const express = require('express');
 const jwt = require('jsonwebtoken');
-const bcrypt = require('bcryptjs');
+const bcrypt = require('bcryptjs'); // Importação correta
 const { Pool } = require('pg');
+const cors = require('cors');
 
 const app = express();
 app.use(express.json());
@@ -14,8 +15,6 @@ const pool = new Pool({
   password: 'uhF5GKbxzXYyS0jtx9PDj4lIcRpnKk00',
   port: 5432,
 });
-
-const cors = require('cors');
 
 // Habilitar CORS
 app.use(cors({
@@ -68,7 +67,6 @@ async function verifyDatabase() {
         FROM information_schema.columns
         WHERE table_name = 'usuarios' AND column_name IN ('tipo_usuario', 'privilegio');
       `);
-
       const existingColumns = columnsExist.rows.map(row => row.column_name);
       if (!existingColumns.includes('tipo_usuario')) {
         await pool.query(`ALTER TABLE usuarios ADD COLUMN tipo_usuario VARCHAR(10) NOT NULL DEFAULT 'usuario';`);
@@ -87,6 +85,26 @@ async function verifyDatabase() {
       `);
       console.log('Restrições de tipo e privilégio aplicadas.');
     }
+
+    // Verificar se a tabela `consultas` existe
+    const consultasTableExists = await pool.query(`
+      SELECT EXISTS (
+        SELECT FROM information_schema.tables 
+        WHERE table_name = 'consultas'
+      );
+    `);
+
+    if (!consultasTableExists.rows[0].exists) {
+      await pool.query(`
+        CREATE TABLE consultas (
+          id SERIAL PRIMARY KEY,
+          usuario_id INTEGER REFERENCES usuarios(id),
+          status VARCHAR(50),
+          data_consulta TIMESTAMP DEFAULT NOW()
+        );
+      `);
+      console.log('Tabela "consultas" criada com sucesso.');
+    }
   } catch (error) {
     console.error('Erro ao verificar/criar tabela:', error);
   }
@@ -101,11 +119,15 @@ app.post('/login', async (req, res) => {
 
   try {
     const result = await pool.query('SELECT * FROM usuarios WHERE email = $1', [email]);
-    if (result.rows.length === 0) return res.status(401).json({ error: 'Usuário não encontrado' });
+    if (result.rows.length === 0) {
+      return res.status(401).json({ error: 'Usuário não encontrado' });
+    }
 
     const user = result.rows[0];
-    const isPasswordValid = await bcryptjs.compare(password, user.senha);
-    if (!isPasswordValid) return res.status(401).json({ error: 'Senha incorreta' });
+    const isPasswordValid = await bcrypt.compare(password, user.senha); // Uso correto do bcrypt
+    if (!isPasswordValid) {
+      return res.status(401).json({ error: 'Senha incorreta' });
+    }
 
     // Atualizar último login
     await pool.query('UPDATE usuarios SET ultimo_login = NOW() WHERE id = $1', [user.id]);

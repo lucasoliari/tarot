@@ -1,6 +1,6 @@
 const express = require('express');
 const jwt = require('jsonwebtoken');
-const bcrypt = require('bcryptjs'); // Importação correta
+const bcrypt = require('bcryptjs');
 const { Pool } = require('pg');
 const cors = require('cors');
 
@@ -68,22 +68,40 @@ async function verifyDatabase() {
         WHERE table_name = 'usuarios' AND column_name IN ('tipo_usuario', 'privilegio');
       `);
       const existingColumns = columnsExist.rows.map(row => row.column_name);
+
       if (!existingColumns.includes('tipo_usuario')) {
         await pool.query(`ALTER TABLE usuarios ADD COLUMN tipo_usuario VARCHAR(10) NOT NULL DEFAULT 'usuario';`);
         console.log('Coluna "tipo_usuario" adicionada à tabela "usuarios".');
       }
+
       if (!existingColumns.includes('privilegio')) {
         await pool.query(`ALTER TABLE usuarios ADD COLUMN privilegio VARCHAR(10) NOT NULL DEFAULT 'usuario';`);
         console.log('Coluna "privilegio" adicionada à tabela "usuarios".');
       }
 
-      // Garantir que os valores de `tipo_usuario` e `privilegio` estejam corretos
-      await pool.query(`
-        ALTER TABLE usuarios
-        ADD CONSTRAINT chk_tipo_usuario CHECK (tipo_usuario IN ('usuario', 'admin', 'master')),
-        ADD CONSTRAINT chk_privilegio CHECK (privilegio IN ('usuario', 'admin', 'master'));
+      // Verificar se as restrições já existem
+      const constraintsExist = await pool.query(`
+        SELECT constraint_name
+        FROM information_schema.constraint_column_usage
+        WHERE table_name = 'usuarios' AND constraint_name IN ('chk_tipo_usuario', 'chk_privilegio');
       `);
-      console.log('Restrições de tipo e privilégio aplicadas.');
+      const existingConstraints = constraintsExist.rows.map(row => row.constraint_name);
+
+      if (!existingConstraints.includes('chk_tipo_usuario')) {
+        await pool.query(`
+          ALTER TABLE usuarios
+          ADD CONSTRAINT chk_tipo_usuario CHECK (tipo_usuario IN ('usuario', 'admin', 'master'));
+        `);
+        console.log('Restrição "chk_tipo_usuario" aplicada.');
+      }
+
+      if (!existingConstraints.includes('chk_privilegio')) {
+        await pool.query(`
+          ALTER TABLE usuarios
+          ADD CONSTRAINT chk_privilegio CHECK (privilegio IN ('usuario', 'admin', 'master'));
+        `);
+        console.log('Restrição "chk_privilegio" aplicada.');
+      }
     }
 
     // Verificar se a tabela `consultas` existe
@@ -124,7 +142,7 @@ app.post('/login', async (req, res) => {
     }
 
     const user = result.rows[0];
-    const isPasswordValid = await bcrypt.compare(password, user.senha); // Uso correto do bcrypt
+    const isPasswordValid = await bcrypt.compare(password, user.senha);
     if (!isPasswordValid) {
       return res.status(401).json({ error: 'Senha incorreta' });
     }

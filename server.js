@@ -31,7 +31,7 @@ const dbConfig = {
   port: process.env.DB_PORT || 5432,
   database: process.env.DB_NAME || 'login_p7n8',
   user: process.env.DB_USER || 'login_p7n8_user',
-  password: process.env.DB_PASSWORD,
+  password: process.env.DB_PASSWORD || 'uhF5GKbxzXYyS0jtx9PDj4lIcRpnKk00',
 };
 
 const client = new Client(dbConfig);

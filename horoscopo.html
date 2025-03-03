@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Horóscopo Diário - Tarot Online</title>
+  <style>
+    /* Reset básico */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+  margin: 0; /* Remove margens padrão */
+  font-family: 'Merriweather', serif;
+  color: #fff;
+  line-height: 1.6;
+
+  /* Configurações para a imagem de fundo */
+  background: url('imagens/fundo4.webp') no-repeat center center/cover;
+  background-attachment: fixed; /* Fixa a imagem no lugar (efeito parallax opcional) */
+  min-height: 100vh; /* Garante que o body ocupe toda a altura da tela */
+
+    }
+
+    /* Header */
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1rem 2rem;
+      background: rgba(0, 0, 0, 0.7);
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+    }
+
+    header .logo {
+      font-family: 'Great Vibes', cursive;
+      font-size: 2rem;
+      color: #FFD700;
+    }
+
+    header nav ul {
+      list-style: none;
+      display: flex;
+      gap: 1.5rem;
+    }
+
+    header nav ul li a {
+      text-decoration: none;
+      color: #fff;
+      font-weight: bold;
+      transition: color 0.3s ease;
+    }
+
+    header nav ul li a:hover {
+      color: #FFD700;
+    }
+
+    /* Main Section */
+    main {
+      padding: 2rem;
+      text-align: center;
+    }
+
+    main h1 {
+      font-size: 2.5rem;
+      margin-bottom: 2rem;
+    }
+
+    /* Sign Grid */
+    .sign-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+      gap: 1.5rem;
+      justify-items: center;
+    }
+
+    .sign-card {
+      background: rgba(255, 215, 0, 0.1);
+      border: 1px solid #FFD700;
+      padding: 1rem;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: transform 0.3s ease;
+    }
+
+    .sign-card:hover {
+      transform: scale(1.1);
+    }
+
+    .sign-card img {
+      width: 50px;
+      height: 50px;
+      margin-bottom: 0.5rem;
+    }
+
+    .sign-card h3 {
+      font-size: 1rem;
+      margin-bottom: 0.5rem;
+    }
+
+    /* Modal */
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.8);
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+    }
+
+    .modal-content {
+      background: #1C1C1C;
+      color: #fff;
+      padding: 2rem;
+      border-radius: 10px;
+      max-width: 500px;
+      text-align: center;
+    }
+
+    .modal-content h2 {
+      font-size: 1.8rem;
+      margin-bottom: 1rem;
+    }
+
+    .modal-content p {
+      font-size: 1rem;
+      margin-bottom: 1rem;
+    }
+
+    .close-btn {
+      background: #FFD700;
+      color: #000;
+      border: none;
+      padding: 0.5rem 1rem;
+      font-size: 1rem;
+      cursor: pointer;
+      border-radius: 5px;
+    }
+  </style>
+</head>
+<body>
+  <!-- Header -->
+  <header>
+    <div class="logo">Tarot Online</div>
+    <nav>
+      <ul>
+        <li><a href="index.html">Início</a></li>
+        <li><a href="#consultas">Consultas</a></li>
+        <li><a href="#cadastro">Cadastro</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <!-- Main Content -->
+  <main>
+    <h1>Horóscopo Diário</h1>
+    <p>Escolha seu signo e descubra as previsões de hoje!</p>
+
+    <!-- Sign Grid -->
+    <div class="sign-grid">
+      <div class="sign-card" onclick="openModal('Áries')">
+        <img src="https://static.vecteezy.com/ti/vetor-gratis/p2/14006007-aries-constelacao-e-signo-do-zodiaco-no-fundo-do-universo-cosmico-desenho-azul-e-branco-ilustracao-vetor.jpg" alt="Áries">
+        <h3>Áries</h3>
+      </div>
+      <div class="sign-card" onclick="openModal('Touro')">
+        <img src="https://th.bing.com/th/id/OIP.XJCZlrYAOhXYvlUy9KwZRQHaHa?w=900&h=900&rs=1&pid=ImgDetMain" alt="Touro">
+        <h3>Touro</h3>
+      </div>
+      <div class="sign-card" onclick="openModal('Gêmeos')">
+        <img src="https://static.vecteezy.com/ti/vetor-gratis/p1/14006016-gemeos-constelacao-e-signo-do-zodiaco-no-fundo-do-universo-cosmico-desenho-azul-e-branco-ilustracao-vetor.jpg" alt="Gêmeos">
+        <h3>Gêmeos</h3>
+      </div>
+      <div class="sign-card" onclick="openModal('Câncer')">
+        <img src="https://img.freepik.com/vetores-premium/cancer-constelacao-e-signo-do-zodiaco-no-fundo-do-universo-cosmico-azul-e-branco_484720-4149.jpg?w=996" alt="Câncer">
+        <h3>Câncer</h3>
+      </div>
+      <div class="sign-card" onclick="openModal('Leão')">
+        <img src="https://img.freepik.com/premium-vector/leo-constellation-zodiac-sign-background-cosmic-universe-blue-white-design_484720-4146.jpg?w=826" alt="Leão">
+        <h3>Leão</h3>
+      </div>
+      <div class="sign-card" onclick="openModal('Virgem')">
+        <img src="https://th.bing.com/th/id/OIP.akGj-2licUJxE1qncpOvTwHaHa?w=900&h=900&rs=1&pid=ImgDetMain" alt="Virgem">
+        <h3>Virgem</h3>
+      </div>
+      <div class="sign-card" onclick="openModal('Libra')">
+        <img src="https://th.bing.com/th/id/OIP.LYZ1PHGmX0hiqaQ3SPr3bwHaHa?pid=ImgDet&w=191&h=191&c=7" alt="Libra">
+        <h3>Libra</h3>
+      </div>
+      <div class="sign-card" onclick="openModal('Escorpião')">
+        <img src="https://th.bing.com/th/id/OIP.JViGhla5JsCTImc2zoW7tQHaHa?pid=ImgDet&w=191&h=191&c=7" alt="Escorpião">
+        <h3>Escorpião</h3>
+      </div>
+      <div class="sign-card" onclick="openModal('Sagitário')">
+        <img src="https://th.bing.com/th/id/OIP.5fdyEas9R10WNb-bAZJFnAHaHa?w=750&h=750&rs=1&pid=ImgDetMain" alt="Sagitário">
+        <h3>Sagitário</h3>
+      </div>
+      <div class="sign-card" onclick="openModal('Capricórnio')">
+        <img src="https://th.bing.com/th/id/OIP.3BEB2XfE3XHyRe6aTvRLfgHaHa?rs=1&pid=ImgDetMain" alt="Capricórnio">
+        <h3>Capricórnio</h3>
+      </div>
+      <div class="sign-card" onclick="openModal('Aquário')">
+        <img src="https://img.freepik.com/premium-vector/aquarius-constellation-zodiac-sign-background-cosmic-universe-blue-white_484720-4131.jpg?w=826" alt="Aquário">
+        <h3>Aquário</h3>
+      </div>
+      <div class="sign-card" onclick="openModal('Peixes')">
+        <img src="https://img.freepik.com/vetores-premium/peixes-constelacao-e-signo-do-zodiaco-no-fundo-do-universo-cosmico-azul-e-branco_484720-4130.jpg?w=2000" alt="Peixes">
+        <h3>Peixes</h3>
+      </div>
+    </div>
+  </main>
+
+  <!-- Modal -->
+  <div id="horoscopoModal" class="modal">
+    <div class="modal-content">
+      <span class="close-btn" onclick="closeModal()">&times;</span>
+      <h2 id="modalSigno">Áries</h2>
+      <p id="modalPrevisao">Hoje será um dia cheio de energia positiva. Você estará mais confiante e pronto para enfrentar novos desafios. No amor, espere surpresas agradáveis.</p>
+    </div>
+  </div>
+
+  <script>
+    // Função para abrir o modal
+    function openModal(signo) {
+      const modal = document.getElementById('horoscopoModal');
+      const modalSigno = document.getElementById('modalSigno');
+      const modalPrevisao = document.getElementById('modalPrevisao');
+
+      // Define o signo no modal
+      modalSigno.textContent = signo;
+
+      // Define a previsão com base no signo (você pode expandir isso com um banco de dados ou API)
+      const previsoes = {
+        'Áries': 'Hoje será um dia cheio de energia positiva. Você estará mais confiante e pronto para enfrentar novos desafios. No amor, espere surpresas agradáveis.',
+        'Touro': 'O dia promete estabilidade e tranquilidade. Aproveite para cuidar de assuntos financeiros e pessoais. No amor, a harmonia reinará.',
+        'Gêmeos': 'Você estará mais comunicativo e aberto a novas ideias. No trabalho, grandes oportunidades podem surgir. No amor, mantenha o diálogo.',
+        'Câncer': 'Hoje será um dia de introspecção. Cuide de sua saúde emocional e aproveite para se conectar com sua família. No amor, seja paciente.',
+        'Leão': 'O dia será perfeito para tomar decisões importantes. Sua liderança será reconhecida. No amor, você brilhará ainda mais.',
+        'Virgem': 'Organize-se e aproveite o dia para resolver pendências. No trabalho, sua dedicação será recompensada. No amor, seja gentil.',
+        'Libra': 'Equilíbrio será a palavra-chave do dia. No trabalho, parcerias serão fortalecidas. No amor, busque harmonia.',
+        'Escorpião': 'Você estará mais determinado e focado. No trabalho, grandes conquistas estão por vir. No amor, seja sincero.',
+        'Sagitário': 'Hoje será um dia de aventuras e novas experiências. No trabalho, mantenha o otimismo. No amor, explore novos horizontes.',
+        'Capricórnio': 'O dia será perfeito para planejar o futuro. No trabalho, sua perseverança será recompensada. No amor, seja fiel aos seus valores.',
+        'Aquário': 'Você estará mais criativo e inovador. No trabalho, ideias originais podem surgir. No amor, busque conexões profundas.',
+        'Peixes': 'Hoje será um dia de sonhos e inspiração. No trabalho, siga sua intuição. No amor, permita-se sonhar.'
+      };
+
+      modalPrevisao.textContent = previsoes[signo];
+
+      // Exibe o modal
+      modal.style.display = 'flex';
+    }
+
+    // Função para fechar o modal
+    function closeModal() {
+      const modal = document.getElementById('horoscopoModal');
+      modal.style.display = 'none';
+    }
+  </script>
+</body>
+</html>

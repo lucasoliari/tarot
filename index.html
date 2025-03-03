@@ -1,12 +1,193 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tarot Online</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Consultas de Tarot Online</title>
+  <style>
+    /* Reset básico */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Merriweather', serif;
+      background: url('imagens/fundo.jpeg') no-repeat center center/cover; /* ÚNICA IMAGEM DE FUNDO */
+      color: #fff;
+      line-height: 1.6;
+      position: relative;
+      min-height: 100vh;
+    }
+
+    /* Sobreposição para escurecer a imagem de fundo */
+    body::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.6); /* Ajuste a opacidade conforme necessário */
+      z-index: 1;
+    }
+
+    /* Garantir que o conteúdo fique acima da sobreposição */
+    header,
+    .hero,
+    .servicos {
+      position: relative;
+      z-index: 2;
+    }
+
+    /* Header */
+    header {
+      padding: 1rem 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    header .logo {
+      font-family: 'Great Vibes', cursive;
+      font-size: 2rem;
+      color: #FFD700;
+    }
+
+    header nav ul {
+      list-style: none;
+      display: flex;
+      gap: 1.5rem;
+    }
+
+    header nav ul li a {
+      text-decoration: none;
+      color: #fff;
+      font-weight: bold;
+      transition: color 0.3s ease;
+    }
+
+    header nav ul li a:hover {
+      color: #FFD700;
+    }
+
+    /* Hero Section */
+    .hero {
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+    }
+
+    .hero h1 {
+      font-size: 3rem;
+      font-family: 'Playfair Display', serif;
+    }
+
+    .hero p {
+      font-size: 1.2rem;
+      margin-bottom: 2rem;
+    }
+
+    .hero button {
+      background: #FFD700;
+      color: #000;
+      border: none;
+      padding: 0.8rem 2rem;
+      font-size: 1rem;
+      font-weight: bold;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: transform 0.3s ease;
+    }
+
+    .hero button:hover {
+      transform: scale(1.1);
+    }
+
+    /* Serviços Section */
+    .servicos {
+      padding: 4rem 2rem;
+      text-align: center;
+    }
+
+    .servicos h2 {
+      font-size: 2rem;
+      margin-bottom: 2rem;
+    }
+
+    .servicos .cards {
+      display: flex;
+      justify-content: center;
+      gap: 2rem;
+      flex-wrap: wrap;
+    }
+
+    .servicos .card {
+      background: rgba(255, 215, 0, 0.1);
+      border: 1px solid #FFD700;
+      padding: 1.5rem;
+      border-radius: 10px;
+      width: 200px;
+      text-align: center;
+      transition: transform 0.3s ease;
+    }
+
+    .servicos .card:hover {
+      transform: translateY(-10px);
+    }
+
+    .servicos .card h3 {
+      font-size: 1.2rem;
+      margin-bottom: 1rem;
+    }
+
+    .servicos .card p {
+      font-size: 0.9rem;
+    }
+  </style>
 </head>
 <body>
-    <div id="root"></div>
-    <script src="app.js"></script>
+  <!-- Header -->
+  <header>
+    <div class="logo">Tarot Online</div>
+    <nav>
+      <ul>
+        <li><a href="horoscopo.html">Horóscopo Diário</a></li> <!-- Link para a página de horóscopo -->
+        <li><a href="consultas.html">Consultas</a></li> <!-- Link para a lista de consultores -->
+        <li><a href="cadastro.html">Cadastro</a></li> <!-- Link para a página de cadastro -->
+        <li><a href="login.html">Login</a></li> <!-- Link para a página de login -->
+      </ul>
+    </nav>
+  </header>
+
+  <!-- Hero Section -->
+  <section class="hero">
+    <h1>Descubra seu Destino</h1>
+    <p>Consultas de Tarot Online com os Melhores Consultores</p>
+    <button onclick="window.location.href='consultants.html'">Comece sua Consulta Agora</button>
+  </section>
+
+  <!-- Serviços Section -->
+  <section class="servicos" id="servicos">
+    <h2>Nossos Serviços</h2>
+    <div class="cards">
+      <div class="card" onclick="window.location.href='horoscopo.html'">
+        <h3>Horóscopo Diário</h3>
+        <p>Previsões diárias personalizadas para cada signo.</p>
+      </div>
+      <div class="card" onclick="window.location.href='consultants.html'">
+        <h3>Consultas Personalizadas</h3>
+        <p>Sessões exclusivas com nossos consultores especializados.</p>
+      </div>
+      <div class="card" onclick="window.location.href='chat.html'">
+        <h3>Chat ao Vivo</h3>
+        <p>Fale diretamente com um consultor em tempo real.</p>
+      </div>
+    </div>
+  </section>
 </body>
 </html>

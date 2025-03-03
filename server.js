@@ -27,14 +27,11 @@ app.use(cors());
 
 // Configuração do banco de dados (PostgreSQL)
 const dbConfig = {
-  host: process.env.DB_HOST || 'dpg-cutqkfd2ng1s73dd5ui0-a',
-  port: process.env.DB_PORT || '5432',
+  host: process.env.DB_HOST || 'dpg-cutqkfd2ng1s73dd5ui0-at',
+  port: process.env.DB_PORT || 5432,
   database: process.env.DB_NAME || 'login_p7n8',
-  user: process.env.DB_USER || 'login_p7n8_user',
-  password: process.env.DB_PASSWORD || 'uhF5GKbxzXYyS0jtx9PDj4lIcRpnKk00',
-  ssl: {
-    rejectUnauthorized: false // Ignora erros de certificado SSL (apenas para testes)
-  }
+  user: process.env.DB_USER || 'plogin_p7n8_user',
+  password: process.env.DB_PASSWORD,
 };
 
 const client = new Client(dbConfig);
@@ -1052,7 +1049,7 @@ app.get('/api/chat-sessions/:sessionId/messages', authenticateJWT, async (req, r
     });
     
     // Iniciar o servidor
-    const PORT = process.env.PORT || 10000;
+    const PORT = process.env.PORT || 3000;
     server.listen(PORT, () => {
       console.log(`Servidor rodando na porta ${PORT}`);
     });

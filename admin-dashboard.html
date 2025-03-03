@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Dashboard</title>
+  <style>
+    /* Reset básico */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Arial', sans-serif;
+      background: url('imagens/admin-background.jpg') no-repeat center center/cover; /* Imagem de fundo */
+      color: #fff;
+      line-height: 1.6;
+      position: relative;
+      min-height: 100vh;
+    }
+
+    /* Sobreposição escura para melhorar a legibilidade */
+    body::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.6); /* Escurece a imagem de fundo */
+      z-index: 1;
+    }
+
+    /* Container principal */
+    .container {
+      position: relative;
+      z-index: 2;
+      padding: 2rem;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    h1 {
+      text-align: center;
+      font-size: 2.5rem;
+      margin-bottom: 2rem;
+    }
+
+    /* Tabela de usuários */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 2rem;
+    }
+
+    table th, table td {
+      padding: 0.8rem;
+      text-align: left;
+      border: 1px solid #ddd;
+      background-color: rgba(255, 255, 255, 0.1);
+      color: #fff;
+    }
+
+    table th {
+      background-color: rgba(255, 215, 0, 0.3); /* Dourado transparente */
+    }
+
+    /* Botões */
+    .btn {
+      display: inline-block;
+      padding: 0.5rem 1rem;
+      background-color: #FFD700;
+      color: #000;
+      text-decoration: none;
+      border-radius: 5px;
+      transition: transform 0.3s ease;
+    }
+
+    .btn:hover {
+      transform: scale(1.1);
+    }
+
+    /* Seções de estatísticas */
+    .stats {
+      display: flex;
+      gap: 2rem;
+      flex-wrap: wrap;
+    }
+
+    .stat-card {
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid #FFD700;
+      padding: 1rem;
+      border-radius: 10px;
+      flex: 1;
+      min-width: 200px;
+      text-align: center;
+    }
+
+    .stat-card h3 {
+      font-size: 1.2rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .stat-card p {
+      font-size: 1rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Painel do Administrador</h1>
+
+    <!-- Lista de Usuários -->
+    <h2>Lista de Usuários</h2>
+    <table id="usersTable">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Nickname</th>
+          <th>E-mail</th>
+          <th>Função</th>
+          <th>Ações</th>
+        </tr>
+      </thead>
+      <tbody>
+        <!-- Os dados dos usuários serão carregados aqui via JavaScript -->
+      </tbody>
+    </table>
+
+    <!-- Estatísticas -->
+    <h2>Estatísticas</h2>
+    <div class="stats">
+      <div class="stat-card">
+        <h3>Total de Consultores</h3>
+        <p id="totalConsultants">Carregando...</p>
+      </div>
+      <div class="stat-card">
+        <h3>Total de Clientes Atendidos (30 dias)</h3>
+        <p id="totalClientsServed">Carregando...</p>
+      </div>
+      <div class="stat-card">
+        <h3>Média de Tempo de Atendimento (por dia)</h3>
+        <p id="avgSessionTime">Carregando...</p>
+      </div>
+    </div>
+
+    <!-- Botão para adicionar novo usuário -->
+    <a href="cadastro.html" class="btn">Adicionar Novo Usuário</a>
+  </div>
+
+  <script>
+    // Função para carregar a lista de usuários
+    async function loadUsers() {
+      try {
+        const response = await fetch('/api/users');
+        const users = await response.json();
+
+        const tbody = document.querySelector('#usersTable tbody');
+        tbody.innerHTML = ''; // Limpa a tabela antes de preencher
+
+        users.forEach(user => {
+          const row = document.createElement('tr');
+
+          row.innerHTML = `
+            <td>${user.id}</td>
+            <td>${user.nickname}</td>
+            <td>${user.email}</td>
+            <td>${user.role}</td>
+            <td>
+              <button class="btn" onclick="deleteUser(${user.id})">Excluir</button>
+            </td>
+          `;
+
+          tbody.appendChild(row);
+        });
+      } catch (error) {
+        console.error('Erro ao carregar usuários:', error);
+      }
+    }
+
+    // Função para excluir um usuário
+    async function deleteUser(userId) {
+      if (confirm('Tem certeza que deseja excluir este usuário?')) {
+        try {
+          await fetch(`/api/users/${userId}`, { method: 'DELETE' });
+          alert('Usuário excluído com sucesso!');
+          loadUsers(); // Recarrega a lista de usuários após exclusão
+        } catch (error) {
+          console.error('Erro ao excluir usuário:', error);
+        }
+      }
+    }
+
+    // Função para carregar estatísticas
+    async function loadStats() {
+      try {
+        const response = await fetch('/api/stats'); // Endpoint fictício para estatísticas
+        const stats = await response.json();
+
+        document.getElementById('totalConsultants').textContent = stats.totalConsultants || 'N/A';
+        document.getElementById('totalClientsServed').textContent = stats.totalClientsServed || 'N/A';
+        document.getElementById('avgSessionTime').textContent = stats.avgSessionTime || 'N/A';
+      } catch (error) {
+        console.error('Erro ao carregar estatísticas:', error);
+      }
+    }
+
+    // Carregar dados ao iniciar a página
+    window.onload = () => {
+      loadUsers();
+      loadStats();
+    };
+  </script>
+</body>
+</html>

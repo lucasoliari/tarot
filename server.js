@@ -25,17 +25,17 @@ const io = socketIo(server, {
 app.use(express.json());
 app.use(cors());
 
-// Configuração do PostgreSQL
-const pool = new Pool({
-  user: 'login_p7n8_user',
-  host: 'dpg-cutqkfd2ng1s73dd5ui0-a',
-  database:'login_p7n8',
-  password:'uhF5GKbxzXYyS0jtx9PDj4lIcRpnKk00',
-  port: 5432,
+// Configuração do banco de dados (PostgreSQL)
+const dbConfig = {
+  host: process.env.DB_HOST || 'dpg-cutqkfd2ng1s73dd5ui0-a',
+  port: process.env.DB_PORT || 5432,
+  database: process.env.DB_NAME || 'login_p7n8',
+  user: process.env.DB_USER || 'login_p7n8_user',
+  password: process.env.DB_PASSWORD || 'uhF5GKbxzXYyS0jtx9PDj4lIcRpnKk00',
   ssl: {
-    rejectUnauthorized: false, // Necessário para conexões SSL no Render
-  },
-});
+    rejectUnauthorized: false // Ignora erros de certificado SSL (apenas para testes)
+  }
+};
 
 const client = new Client(dbConfig);
 

@@ -28,7 +28,7 @@ app.use(cors());
 // Configuração do banco de dados (PostgreSQL)
 const dbConfig = {
   host: process.env.DB_HOST || 'dpg-cutqkfd2ng1s73dd5ui0-a',
-  port: process.env.DB_PORT || 5432,
+  port: process.env.DB_PORT || '5432',
   database: process.env.DB_NAME || 'login_p7n8',
   user: process.env.DB_USER || 'login_p7n8_user',
   password: process.env.DB_PASSWORD || 'uhF5GKbxzXYyS0jtx9PDj4lIcRpnKk00',

@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import ReactDOM from 'react-dom';
 import io from 'socket.io-client';
 
 const socket = io('http://localhost:3000'); // Conectar ao backend
@@ -99,4 +100,4 @@ function App() {
     );
 }
 
-export default App;
+ReactDOM.render(<App />, document.getElementById('root'));
